@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRCHC ENTERPRISE - V260 FINAL MASTER</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root { --primary-blue: #1e5bb9; --bg-gray: #f4f7fa; --hero-grad: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%); }
+        body { background-color: var(--bg-gray); font-family: 'Inter', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Sidebar with Logo & Scroll Fix */
+        .sidebar { background: #1e5bb9; width: 280px; color: white; flex-shrink: 0; display: flex; flex-direction: column; z-index: 50; height: 100vh; }
+        .logo-container { padding: 25px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
+        
+        /* FINAL LOGO BOX FORMATTING */
+        .logo-placeholder { 
+            width: 100%; 
+            height: 90px; 
+            background: rgba(255,255,255,0.1); 
+            border: 2px dashed rgba(255,255,255,0.3); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            border-radius: 12px; 
+            margin-bottom: 12px; 
+            overflow: hidden; 
+            padding: 8px;
+        }
+        .logo-img { 
+            max-width: 100%; 
+            max-height: 100%; 
+            object-fit: contain; 
+            display: block;
+        }
+        
+        /* SCROLLABLE NAVIGATION */
+        .nav-wrapper { flex: 1; overflow-y: auto; padding-top: 10px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.3) transparent; }
+        .nav-item { display: flex; align-items: center; padding: 12px 24px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.2s; border-left: 4px solid transparent; }
+        .nav-item:hover { background: rgba(255,255,255,0.05); }
+        .nav-item.active { background: rgba(0,0,0,0.2); border-left-color: #39FF14; color: white; }
+        
+        /* Dashboard Components */
+        .hero-card { background: var(--hero-grad); border-radius: 20px; padding: 25px; color: white; min-width: 320px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2); }
+        .kpi-card { background: white; border-radius: 15px; padding: 18px; border-top: 5px solid #ef4444; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .kpi-card.pass { border-top-color: #22c55e; }
+        .studio-card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); border: 1px solid #eef2f6; }
+        
+        input, select { border: 1px solid #e2e8f0 !important; padding: 12px !important; border-radius: 10px !important; width: 100%; font-size: 14px; background: #fff; }
+        .btn-blue { background: #1e5bb9; color: white; font-weight: 800; padding: 14px; border-radius: 10px; width: 100%; cursor: pointer; text-transform: uppercase; }
+        .btn-red { background: #dc2626; color: white; font-weight: 800; padding: 14px; border-radius: 10px; width: 100%; cursor: pointer; text-transform: uppercase; }
+
+        /* FULL PAGE SCROLLING CONTENT */
+        .page-content { display: none; height: 100%; overflow-y: auto; padding: 40px; scroll-behavior: smooth; }
+        .page-content.active { display: block; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo-container">
+            <div class="logo-placeholder" id="logo-slot">
+                <span class="text-[10px] font-bold opacity-40">CRCHC LOGO</span>
+            </div>
+            <h1 class="text-xl font-black italic tracking-tighter uppercase">CRCHC OPERATIONS</h1>
+        </div>
+        <div class="nav-wrapper" id="nav-list"></div>
+    </aside>
+
+    <main class="flex-1 flex flex-col bg-[#f1f5f9] overflow-hidden">
+        <header class="bg-white border-b px-10 py-5 flex justify-between items-center shadow-sm z-10">
+            <h2 id="header-title" class="text-2xl font-black italic text-blue-900 uppercase">CRCHC Operations Dashboard</h2>
+            <div class="flex items-center gap-6">
+                <input type="text" id="global-search" placeholder="Quick Search Sites..." class="!w-72 !mb-0">
+                <div class="flex flex-col items-end">
+                    <span class="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded border border-blue-200 uppercase tracking-widest">Status: Secured</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 relative overflow-hidden">
+            <section id="Home" class="page-content active">
+                <div class="flex gap-6 mb-10 overflow-x-auto pb-4">
+                    <div class="hero-card">
+                        <p class="text-[12px] font-black opacity-70 uppercase tracking-widest">Total Revenue</p>
+                        <h3 id="hero-rev" class="text-5xl font-black mt-2 tracking-tighter">$0</h3>
+                    </div>
+                    <div class="hero-card" style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);">
+                        <p class="text-[12px] font-black opacity-70 uppercase tracking-widest">A/R Balance</p>
+                        <h3 id="hero-ar" class="text-5xl font-black mt-2 tracking-tighter">$0</h3>
+                    </div>
+                    <div class="hero-card" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                        <p class="text-[12px] font-black opacity-70 uppercase tracking-widest">Total Encounters</p>
+                        <h3 id="hero-enc" class="text-5xl font-black mt-2 tracking-tighter">0</h3>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-4 gap-5 mb-10" id="home-kpi-grid"></div>
+
+                <div class="grid grid-cols-2 gap-10">
+                    <div class="studio-card">
+                        <h3 class="font-black uppercase text-blue-900 mb-6 border-b pb-3 flex items-center gap-2"><i class="fas fa-chart-pie"></i> Revenue Cycle Breakdown</h3>
+                        <div class="h-[400px]"><canvas id="homeRevChart"></canvas></div>
+                    </div>
+                    <div class="studio-card">
+                        <h3 class="font-black uppercase text-blue-900 mb-6 border-b pb-3 flex items-center gap-2"><i class="fas fa-chart-line"></i> Monthly Performance Trends</h3>
+                        <div class="h-[400px]"><canvas id="homeTrendChart"></canvas></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="Export Studio" class="page-content">
+                <div class="studio-card max-w-6xl mx-auto">
+                    <h2 class="text-2xl font-black italic uppercase mb-8 border-b-4 border-blue-900 inline-block">Export Master Console</h2>
+                    <div class="grid grid-cols-3 gap-8 mb-10">
+                        <div><label class="text-[11px] font-black uppercase mb-2 block">Select Target Site</label><select id="exp-site"><option>All Sites (Consolidated)</option></select></div>
+                        <div><label class="text-[11px] font-black uppercase mb-2 block">Reporting Start</label><select><option>January</option></select></div>
+                        <div><label class="text-[11px] font-black uppercase mb-2 block">Reporting End</label><select><option>December</option></select></div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-6">
+                        <button class="btn-red h-32 text-xl font-black shadow-lg hover:scale-[1.02] transition">GENERATE PDF REPORT</button>
+                        <button class="btn-blue !bg-green-700 h-32 text-xl font-black shadow-lg hover:scale-[1.02] transition">DOWNLOAD EXCEL MASTER</button>
+                        <button class="btn-blue !bg-black h-32 text-xl font-black shadow-lg hover:scale-[1.02] transition italic">CONSOLIDATED CLINICAL AUDIT</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="Site Registry" class="page-content">
+                <div class="flex justify-between items-center mb-10">
+                    <h2 class="text-4xl font-black italic uppercase text-blue-900">Master Ledger</h2>
+                    <select id="reg-month" class="!w-64 !mb-0 shadow-lg" onchange="renderRegistry()">
+                        <option value="0">January View</option><option value="1">February View</option><option value="2">March View</option>
+                        <option value="3">April View</option><option value="4">May View</option><option value="5">June View</option>
+                        <option value="6">July View</option><option value="7">August View</option><option value="8">September View</option>
+                        <option value="9">October View</option><option value="10">November View</option><option value="11">December View</option>
+                    </select>
+                </div>
+                <div id="registry-list" class="space-y-8"></div>
+            </section>
+
+            <section id="DeptView" class="page-content">
+                <div class="flex justify-between items-center mb-10">
+                    <h2 id="dept-name-display" class="text-6xl font-black italic uppercase text-blue-900 tracking-tighter"></h2>
+                    <div id="dept-tabs" class="flex gap-3 bg-gray-200 p-2 rounded-2xl"></div>
+                </div>
+                <div id="dept-content-area"></div>
+            </section>
+
+            <section id="System Admin" class="page-content">
+                <div class="grid grid-cols-3 gap-8 mb-8">
+                    <div class="studio-card">
+                        <h3 class="font-black italic uppercase border-b-2 border-blue-900 mb-6 pb-2">Operation Architect</h3>
+                        <input id="adm-op-name" placeholder="Operation Name (e.g. Call Center)" class="mb-4">
+                        <input id="adm-op-icon" placeholder="FontAwesome Icon (e.g. fa-headset)" class="mb-4">
+                        <button onclick="addOperation()" class="btn-blue mb-6">Add New Operation</button>
+                        <select id="adm-op-del" class="mb-4"></select>
+                        <button onclick="deleteOperation()" class="btn-red">Delete Operation</button>
+                    </div>
+                    <div class="studio-card">
+                        <h3 class="font-black italic uppercase border-b-2 border-blue-900 mb-6 pb-2">Branding Suite</h3>
+                        <input id="adm-logo-url" placeholder="Logo Image URL (Direct Link)" class="mb-4" oninput="updateLogo(this.value)">
+                        <input placeholder="Clinic Full Name" class="mb-4">
+                        <input placeholder="Dashboard Title" class="mb-4">
+                        <button class="btn-blue !bg-gray-800">Save Branding Profile</button>
+                    </div>
+                    <div class="studio-card">
+                        <h3 class="font-black italic uppercase border-b-2 border-blue-900 mb-6 pb-2">Safety & Backups</h3>
+                        <div class="space-y-3 mb-8 max-h-48 overflow-y-auto pr-2" id="backup-list"></div>
+                        <button onclick="downloadBackup()" class="btn-blue !bg-indigo-800 h-16 shadow-xl">BACKUP FULL SYSTEM (.JSON)</button>
+                    </div>
+                </div>
+                <div class="studio-card">
+                    <h3 class="font-black italic uppercase border-b-2 border-blue-900 mb-6 pb-2">KPI & Site Architect</h3>
+                    <div class="grid grid-cols-3 gap-10">
+                        <div>
+                            <input id="adm-kpi-name" placeholder="New KPI Name" class="mb-3">
+                            <select id="adm-kpi-dept" class="mb-3"></select>
+                            <button onclick="addKPI()" class="btn-blue shadow-md">Create Master KPI</button>
+                        </div>
+                        <div>
+                            <input id="adm-site-name" placeholder="New Clinic Site Name" class="mb-3">
+                            <button onclick="addSite()" class="btn-blue mb-4 shadow-md">Register New Site</button>
+                            <select id="adm-site-del" class="mb-3"></select>
+                            <button onclick="deleteSite()" class="btn-red shadow-md">De-Register Site</button>
+                        </div>
+                        <div>
+                            <select id="adm-target-kpi" class="mb-3"></select>
+                            <input type="number" id="adm-target-val" placeholder="Set Annual Target" class="mb-3">
+                            <button onclick="setTarget()" class="btn-blue !bg-emerald-600 shadow-md">Update Target</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        // FULL ORIGINAL JAVASCRIPT LOGIC PRESERVED
+        let db = JSON.parse(localStorage.getItem('CRCHC_V260_FINAL_DATA')) || {
+            logo: '',
+            depts: [
+                {n: 'Billing', i: 'fa-file-invoice-dollar', t: ['Operational', 'Payer Mix']},
+                {n: 'Medical', i: 'fa-user-md', t: ['Operational', 'Payer Mix']},
+                {n: 'Dental', i: 'fa-tooth', t: ['Operational', 'Payer Mix']},
+                {n: 'Behavioral Health', i: 'fa-brain', t: ['Operational', 'Payer Mix']},
+                {n: 'Call Center', i: 'fa-headset', t: ['Operational']},
+                {n: 'Facilities Management', i: 'fa-tools', t: ['Operational', 'Facilities Projects']},
+                {n: 'Credentialing', i: 'fa-id-card', t: ['Operational']}
+            ],
+            kpis: [
+                {id: 1, n: 'Medical Revenue', d: 'Medical', g: 10000}, {id: 2, n: 'Encounters', d: 'Medical', g: 500},
+                {id: 3, n: 'Work Order Comp %', d: 'Facilities Management', g: 95}, {id: 4, n: 'Missing Slips', d: 'Billing', g: 5},
+                {id: 5, n: 'A/R Total', d: 'Billing', g: 50000}, {id: 6, n: 'Patient Complaints', d: 'Medical', g: 0},
+                {id: 7, n: 'Satisfaction %', d: 'Medical', g: 90}, {id: 8, n: 'Dental Credits', d: 'Dental', g: 100},
+                {id: 9, n: 'Dental Revenue', d: 'Dental', g: 20000}, {id: 10, n: 'Dental Notes', d: 'Dental', g: 100},
+                {id: 11, n: 'Wait Time', d: 'Call Center', g: 2}, {id: 12, n: 'Top 2 Denials', d: 'Billing', g: 10},
+                {id: 13, n: 'Claims in Hold', d: 'Billing', g: 5}, {id: 14, n: 'Manager Hold', d: 'Billing', g: 2},
+                {id: 15, n: 'BH Revenue', d: 'Behavioral Health', g: 15000}, {id: 16, n: 'Call Volume', d: 'Call Center', g: 1000}
+            ],
+            sites: [{n: 'McGill Family Medicine', d: {}}],
+            payers: [
+                {l: 'Medicare', v: 40, c: '#1e3a8a'}, {l: 'Medicaid', v: 30, c: '#3b82f6'},
+                {l: 'Private Insurance', v: 20, c: '#60a5fa'}, {l: 'Self-Pay', v: 10, c: '#94a3b8'},
+                {l: 'Medicaid Managed Care', v: 0, c: '#cbd5e1'}
+            ],
+            projects: []
+        };
+
+        let activeP = 'Home', activeT = 'Operational', charts = {};
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        function save() { localStorage.setItem('CRCHC_V260_FINAL_DATA', JSON.stringify(db)); }
+
+        function updateLogo(url) {
+            db.logo = url;
+            document.getElementById('logo-slot').innerHTML = url ? `<img src="${url}" class="logo-img">` : '<span class="text-[10px] font-bold opacity-40">CRCHC LOGO</span>';
+            save();
+        }
+
+        function getKVal(id, m) {
+            let total = 0;
+            db.sites.forEach(s => { if(s.d[id]) total += (parseFloat(s.d[id][m]) || 0); });
+            return total;
+        }
+
+        function refresh() {
+            renderNav();
+            updateLogo(db.logo);
+            document.querySelectorAll('.page-content').forEach(pg => pg.classList.remove('active'));
+            const sysPages = ['Home', 'Export Studio', 'Site Registry', 'System Admin'];
+            
+            if(sysPages.includes(activeP)) {
+                document.getElementById(activeP).classList.add('active');
+                if(activeP === 'Home') renderHome();
+                if(activeP === 'Site Registry') renderRegistry();
+                if(activeP === 'System Admin') renderAdmin();
+            } else {
+                document.getElementById('DeptView').classList.add('active');
+                renderDept();
+            }
+            save();
+        }
+
+        function renderNav() {
+            let h = `<div onclick="nav('Home')" class="nav-item ${activeP==='Home'?'active':''}"><i class="fas fa-th-large mr-4 w-5"></i> Home Dashboard</div>`;
+            db.depts.forEach(d => { h += `<div onclick="nav('${d.n}')" class="nav-item ${activeP===d.n?'active':''}"><i class="fas ${d.i} mr-4 w-5"></i> ${d.n}</div>`; });
+            h += `<div onclick="nav('Site Registry')" class="nav-item ${activeP==='Site Registry'?'active':''}"><i class="fas fa-database mr-4 w-5"></i> Master Ledger</div>`;
+            h += `<div onclick="nav('Export Studio')" class="nav-item ${activeP==='Export Studio'?'active':''}"><i class="fas fa-print mr-4 w-5"></i> Export Studio</div>`;
+            h += `<div onclick="nav('System Admin')" class="nav-item mt-10 ${activeP==='System Admin'?'active':''}"><i class="fas fa-sliders-h mr-4 w-5"></i> System Admin</div>`;
+            document.getElementById('nav-list').innerHTML = h;
+        }
+
+        function renderHome() {
+            const m = document.getElementById('reg-month').value || 0;
+            const tRev = getKVal(1, m) + getKVal(9, m) + getKVal(15, m);
+            document.getElementById('hero-rev').innerText = `$${tRev.toLocaleString()}`;
+            document.getElementById('hero-ar').innerText = `$${getKVal(5, m).toLocaleString()}`;
+            document.getElementById('hero-enc').innerText = getKVal(2, m).toLocaleString();
+
+            document.getElementById('home-kpi-grid').innerHTML = db.kpis.map(k => {
+                const val = getKVal(k.id, m);
+                const isBad = [4, 6, 11, 12, 13, 14].includes(k.id);
+                const pass = isBad ? (val <= k.g) : (val >= k.g);
+                return `<div class="kpi-card ${pass?'pass':''}"><p class="text-[10px] font-black uppercase text-gray-400 tracking-widest">${k.n}</p><h4 class="text-3xl font-black text-blue-900 mt-1">${val.toLocaleString()}</h4><p class="text-[9px] font-bold text-gray-400 mt-2">GOAL: ${k.g}</p></div>`;
+            }).join('');
+
+            if(charts.homeRev) charts.homeRev.destroy();
+            charts.homeRev = new Chart(document.getElementById('homeRevChart'), {
+                type: 'doughnut',
+                data: { labels: ['Medical', 'Dental', 'BH'], datasets: [{ data: [getKVal(1, m), getKVal(9, m), getKVal(15, m)], backgroundColor: ['#1e3a8a', '#10b981', '#8b5cf6'] }] },
+                options: { maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'bottom', labels: { font: { weight: 'bold' } } } } }
+            });
+
+            if(charts.homeTrend) charts.homeTrend.destroy();
+            charts.homeTrend = new Chart(document.getElementById('homeTrendChart'), {
+                type: 'line',
+                data: { labels: months, datasets: [{ label: 'Total Revenue Trend', data: months.map((_, i) => getKVal(1, i)+getKVal(9, i)+getKVal(15, i)), borderColor: '#1e5bb9', backgroundColor: 'rgba(30,91,185,0.1)', fill: true, tension: 0.4 }] },
+                options: { maintainAspectRatio: false }
+            });
+        }
+
+        function renderDept() {
+            const d = db.depts.find(x => x.n === activeP);
+            document.getElementById('dept-name-display').innerText = d.n;
+            document.getElementById('dept-tabs').innerHTML = d.t.map(t => `<button onclick="activeT='${t}'; renderDept()" class="px-8 py-3 rounded-xl text-xs font-black uppercase transition ${activeT===t?'bg-blue-900 text-white shadow-xl':'text-gray-500 hover:bg-gray-300'}">${t}</button>`).join('');
+
+            const area = document.getElementById('dept-content-area');
+            if (activeT === 'Payer Mix') {
+                area.innerHTML = `<div class="grid grid-cols-2 gap-10"><div class="studio-card" id="payer-inputs"></div><div class="studio-card h-[550px] flex flex-col"><h3 class="font-black uppercase mb-6 text-center">4D Payer Distribution</h3><canvas id="deptPayerChart"></canvas></div></div>`;
+                renderPayerLogic();
+            } else if (activeT === 'Facilities Projects') {
+                area.innerHTML = `<div class="studio-card mb-8"><div class="grid grid-cols-5 gap-4"><input id="p-name" placeholder="Project Name"> <input id="p-bud" placeholder="Budget $"> <input id="p-comp" placeholder="Complete %"> <input type="date" id="p-date"><button onclick="addProject()" class="btn-blue shadow-lg">Add Project</button></div></div><div class="studio-card h-[350px] mb-8"><h3 class="font-black uppercase mb-4">Work Order Volume (12M)</h3><canvas id="workOrderChart"></canvas></div><div id="project-list" class="space-y-3"></div>`;
+                renderFacilitiesLogic();
+            } else {
+                area.innerHTML = `<div class="grid grid-cols-4 gap-8">${db.kpis.filter(k => k.d === d.n).map(k => `<div class="kpi-card pass shadow-lg"><p class="text-[11px] font-black uppercase text-gray-400 tracking-widest">${k.n}</p><h4 class="text-5xl font-black text-blue-900 mt-2">${getKVal(k.id, 0).toLocaleString()}</h4><p class="text-[10px] text-gray-400 mt-4 font-bold uppercase">Target Threshold: ${k.g}</p></div>`).join('')}</div>`;
+            }
+        }
+
+        function renderPayerLogic() {
+            document.getElementById('payer-inputs').innerHTML = `
+                <h3 class="font-black uppercase mb-6 border-b pb-2">Insurance & Payer Profile</h3>
+                ${db.payers.map((p, i) => `
+                    <div class="flex gap-3 mb-4 items-center">
+                        <input value="${p.l}" oninput="db.payers[${i}].l=this.value; save()" class="flex-1">
+                        <input type="number" value="${p.v}" oninput="db.payers[${i}].v=this.value; save(); updatePayerChart()" class="w-24">
+                        <input type="color" value="${p.c}" oninput="db.payers[${i}].c=this.value; save(); updatePayerChart()" class="!w-16 !h-12 cursor-pointer p-1">
+                        <button class="text-red-500 font-black px-3 hover:bg-red-50 rounded h-12">X</button>
+                    </div>`).join('')}
+                <button class="btn-blue !bg-black mt-6 shadow-lg">ADD INSURANCE ROW</button>`;
+            updatePayerChart();
+        }
+
+        function updatePayerChart() {
+            if(charts.payer) charts.payer.destroy();
+            charts.payer = new Chart(document.getElementById('deptPayerChart'), {
+                type: 'pie',
+                data: { labels: db.payers.map(p => p.l), datasets: [{ data: db.payers.map(p => p.v), backgroundColor: db.payers.map(p => p.c), borderWidth: 5, borderColor: '#fff' }] },
+                options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 20, font: { size: 12, weight: 'bold' } } } } }
+            });
+        }
+
+        function renderFacilitiesLogic() {
+            new Chart(document.getElementById('workOrderChart'), { type: 'line', data: { labels: months, datasets: [{ label: 'Work Orders', data: months.map(()=>Math.floor(Math.random()*25)), borderColor: '#1e5bb9', backgroundColor: 'rgba(30,91,185,0.05)', fill: true, tension: 0.4 }] }, options: { maintainAspectRatio: false }});
+            document.getElementById('project-list').innerHTML = db.projects.map(p => `<div class="p-5 bg-white border-2 rounded-2xl flex justify-between items-center shadow-sm"><div><b class="text-blue-900 uppercase">${p.n}</b><p class="text-[10px] font-bold text-gray-400">Target Date: ${p.d}</p></div><span class="bg-blue-100 text-blue-700 px-4 py-1 rounded-full font-black text-xs">${p.c}% COMP</span> <b class="text-lg font-black">$${p.b}</b></div>`).join('');
+        }
+
+        function renderRegistry() {
+            const m = document.getElementById('reg-month').value;
+            document.getElementById('registry-list').innerHTML = db.sites.map((s, si) => `
+                <div class="studio-card">
+                    <h3 class="font-black text-blue-900 uppercase mb-6 flex justify-between items-center"><span>${s.n}</span> <i class="fas fa-edit opacity-20"></i></h3>
+                    <div class="grid grid-cols-4 gap-6">${db.kpis.map(k => `
+                        <div><label class="text-[10px] font-black uppercase text-gray-400 block mb-2">${k.n}</label>
+                        <input type="number" value="${(s.d[k.id] || [])[m] || 0}" oninput="updateRegistryData(${si}, ${k.id}, ${m}, this.value)" class="focus:border-blue-500 outline-none"></div>
+                    `).join('')}</div>
+                </div>`).join('');
+        }
+
+        function updateRegistryData(si, ki, mi, val) { if(!db.sites[si].d[ki]) db.sites[si].d[ki] = new Array(12).fill(0); db.sites[si].d[ki][mi] = parseFloat(val) || 0; save(); }
+        
+        function renderAdmin() {
+            const deptSel = db.depts.map(d => `<option>${d.n}</option>`).join('');
+            document.getElementById('adm-op-del').innerHTML = deptSel;
+            document.getElementById('adm-kpi-dept').innerHTML = deptSel;
+            document.getElementById('adm-site-del').innerHTML = db.sites.map(s => `<option>${s.n}</option>`).join('');
+            document.getElementById('adm-target-kpi').innerHTML = db.kpis.map(k => `<option value="${k.id}">${k.n}</option>`).join('');
+            document.getElementById('backup-list').innerHTML = ['HOME', 'SITE REGISTRY', 'EXPORT STUDIO', 'BILLING', 'MEDICAL', 'DENTAL', 'BH', 'CALL CENTER', 'FACILITIES'].map(x => `<div class="flex items-center gap-3 text-[11px] font-black uppercase text-gray-600 border-b pb-2"><input type="checkbox" checked class="w-4 h-4"> ${x} ARCHIVE</div>`).join('');
+        }
+
+        function setTarget() { const id = document.getElementById('adm-target-kpi').value; db.kpis.find(k => k.id == id).g = parseFloat(document.getElementById('adm-target-val').value); refresh(); }
+        function addOperation() { db.depts.push({n: document.getElementById('adm-op-name').value, i: document.getElementById('adm-op-icon').value || 'fa-folder', t: ['Operational']}); refresh(); }
+        function deleteOperation() { const name = document.getElementById('adm-op-del').value; db.depts = db.depts.filter(d => d.n !== name); refresh(); }
+        function addSite() { db.sites.push({n: document.getElementById('adm-site-name').value, d: {}}); refresh(); }
+        function deleteSite() { if(confirm('Erase all site ledger data?')) { db.sites = db.sites.filter(s => s.n !== document.getElementById('adm-site-del').value); refresh(); } }
+        function addKPI() { const id = Math.max(...db.kpis.map(k => k.id)) + 1; db.kpis.push({ id: id, n: document.getElementById('adm-kpi-name').value, d: document.getElementById('adm-kpi-dept').value, g: 0 }); refresh(); }
+        function nav(p) { activeP = p; activeT = 'Operational'; refresh(); }
+        function downloadBackup() { const blob = new Blob([JSON.stringify(db)], {type: 'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'CRCHC_MASTER_FINAL.json'; a.click(); }
+
+        window.onload = refresh;
+    </script>
+</body>
+</html>
